@@ -3,6 +3,7 @@ package main
 import (
 	"gofirebase/api"
 	"gofirebase/config"
+	"gofirebase/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -15,10 +16,17 @@ func main() {
 	// configure database
 	db := config.CreateDatabase()
 
-	// set db to gin context with a middleware to all incoming request
+	// configure firebase
+	firebaseAuth := config.SetupFirebase()
+
+	// set db & firebase auth to gin context with a middleware to all incoming request
 	r.Use(func(c *gin.Context) {
 		c.Set("db", db)
+		c.Set("firebaseAuth", firebaseAuth)
 	})
+
+	// using the auth middle ware to validate api requests
+	r.Use(middleware.AuthMiddleware)
 
 	// routes definition for finding and creating artists
 	r.GET("/artist", api.FindArtists)
